@@ -1,29 +1,50 @@
-# Python
+# =========================================
+# Archivos generados y modelos entrenados
+# =========================================
+predictions.csv
+*.pkl
+*.joblib
+*.h5
+*.model
+
+# =========================================
+# Carpeta de logs, reports y outputs
+# =========================================
+logs/
+reports/*.html
+reports/*.png
+reports/*.pdf
+reports/*.csv
+
+# =========================================
+# Entorno virtual y caches
+# =========================================
+.env/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-env/
-venv/
-*.egg-info/
+.ipynb_checkpoints/
 
-# Conda
-.conda/
-*.conda
-*.env
-
-# VS Code
+# =========================================
+# Configuraciones de IDE / editor
+# =========================================
 .vscode/
+*.sublime-project
+*.sublime-workspace
 
-# Data
-data/raw/
-data/processed/
+# =========================================
+# Sistemas operativos
+# =========================================
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Models
-models/
-
-# Logs
+# =========================================
+# Otros archivos temporales
+# =========================================
 *.log
-
-# En .gitignore
-predictions.csv
+*.tmp
+*.bak
+*.swp
