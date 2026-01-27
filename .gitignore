@@ -48,3 +48,6 @@ desktop.ini
 *.tmp
 *.bak
 *.swp
+# Ignorar CSVs generados
+data/*.csv
+*.csv
