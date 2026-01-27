@@ -24,3 +24,6 @@ models/
 
 # Logs
 *.log
+
+# En .gitignore
+predictions.csv
