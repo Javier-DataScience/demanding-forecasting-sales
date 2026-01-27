@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.egg-info/
+
+# Conda
+.conda/
+*.conda
+*.env
+
+# VS Code
+.vscode/
+
+# Data
+data/raw/
+data/processed/
+
+# Models
+models/
+
+# Logs
+*.log
