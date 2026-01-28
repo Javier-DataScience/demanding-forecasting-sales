@@ -1,9 +1,10 @@
-version: "3.9"
-
 services:
   forecasting:
-    build: ./docker
-    container_name: demand_forecasting
+    container_name: demand-forecasting
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     volumes:
-      - .:/app
-    command: python src/models/train_model.py
+      - ..:/app
+    working_dir: /app
+    command: bash

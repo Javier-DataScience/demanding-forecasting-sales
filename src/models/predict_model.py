@@ -1,69 +1,60 @@
-import joblib
+# src/models/predict_model.py
 import pandas as pd
-
-from src.data.load_data import load_raw_data
+import lightgbm as lgb
+from src.data.prepare_data import load_raw_data
 from src.features.feature_engineering import create_features
 
-def clean_feature_names(df):
-    df.columns = df.columns.str.replace(r"[^0-9a-zA-Z_]", "_", regex=True)
-    return df
-
 def predict():
-    # 1️⃣ Cargar modelo
-    model = joblib.load("models/lightgbm_model.pkl")
-
-    # 2️⃣ Cargar datos
+    # --- Paso 1: Cargar datos ---
     data = load_raw_data()
-    train = data["train"]
-    test = data["test"]
-    test_ids = test["id"].copy()
+    train = data['train']
+    test = data['test']
 
-    # 3️⃣ Concatenar train + test para poder calcular lags
-    # Ponemos sales en test como NaN
-    test["sales"] = pd.NA
-    full = pd.concat([train, test], ignore_index=True)
+    # --- Paso 2: Preparar features ---
+    # Concatenar train y test para generar las mismas features
+    full = pd.concat([train, test], sort=False, ignore_index=True)
 
-    # 4️⃣ Crear features (lags y rolling)
+    # Convertir sales a float, fill NaNs con 0
+    if 'sales' in full.columns:
+        full['sales'] = pd.to_numeric(full['sales'], errors='coerce').fillna(0)
+    if 'onpromotion' in full.columns:
+        full['onpromotion'] = pd.to_numeric(full['onpromotion'], errors='coerce').fillna(0)
+
+    # Crear features con tu función
     full_features = create_features(full)
 
-    # 5️⃣ Tomar solo las filas del test
-    test_features = full_features[full_features["sales"].isna()]
+    # Separar de nuevo en train/test
+    train_features = full_features[full_features['date'] <= train['date'].max()]
+    test_features = full_features[full_features['date'] > train['date'].max()]
 
-    # 6️⃣ Seleccionar columnas de features
+    # --- Paso 3: Definir columnas a usar para predicción ---
     features = [
-        "store_nbr",
-        "family",
-        "dayofweek",
-        "month",
-        "quarter",
-        "year",
-        "is_weekend",
-        "lag_7",
-        "lag_14",
-        "lag_28",
-        "rolling_mean_7",
-        "rolling_mean_28",
-        "onpromotion",
+        'store_nbr', 'family', 'onpromotion',
+        'dayofweek', 'quarter', 'is_weekend',
+        'lag_7', 'lag_14', 'lag_28',
+        'rolling_mean_7', 'rolling_mean_28',
+        'month', 'year'
     ]
 
-    X_test = pd.get_dummies(test_features[features], columns=["family"], drop_first=True)
-    X_test = clean_feature_names(X_test)
+    # Comprobar que las columnas existen
+    features = [f for f in features if f in train_features.columns]
 
-    # Alinear columnas con entrenamiento
-    model_features = model.feature_name()
-    X_test = X_test.reindex(columns=model_features, fill_value=0)
+    # One-hot encoding para la columna 'family'
+    X_test = pd.get_dummies(test_features[features], columns=['family'], drop_first=True)
 
-    # 7️⃣ Hacer predicciones
+    # --- Paso 4: Cargar modelo LightGBM ---
+    import joblib
+    model = joblib.load('models/lightgbm_model.pkl')
+
+
+    # --- Paso 5: Predecir ---
     y_pred = model.predict(X_test)
 
-    # 8️⃣ Guardar resultados
-    results = pd.DataFrame({
-        "id": test_ids,
-        "sales_pred": y_pred
-    })
-
-    results.to_csv("predictions.csv", index=False)
-    print("Predicciones guardadas en predictions.csv")
+    # --- Paso 6: Guardar predicciones ---
+    submission = test_features[['id']].copy()
+    submission['sales'] = y_pred
+    submission.to_csv('predictions.csv', index=False)
+    print("Predictions saved to predictions.csv")
 
 if __name__ == "__main__":
     predict()

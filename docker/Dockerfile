@@ -1,21 +1,19 @@
-# Base image con Python
 FROM python:3.11-slim
 
-# Evitar warnings de buffering
-ENV PYTHONUNBUFFERED=1
+# Install system dependencies required by LightGBM
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Crear directorio de trabajo
+# Set working directory and Python path
 WORKDIR /app
+ENV PYTHONPATH=/app
 
-# Copiar requirements.txt primero para aprovechar cache
+# Copy requirements first (better Docker cache usage)
 COPY requirements.txt .
 
-# Instalar dependencias
-RUN pip install --upgrade pip
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el resto del código
+# Copy the rest of the project (src, data, models, etc.)
 COPY . .
-
-# Comando por defecto al correr el contenedor
-CMD ["python", "src/models/train_model.py"]
