@@ -1,10 +1,11 @@
+version: "3.8"
+
 services:
   forecasting:
-    container_name: demand-forecasting
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: ../
+      dockerfile: Dockerfile
+    container_name: forecasting_container
     volumes:
-      - ..:/app
-    working_dir: /app
-    command: bash
+      - ../:/app
+    command: tail -f /dev/null
